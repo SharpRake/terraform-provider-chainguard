@@ -24,8 +24,8 @@ provider "chainguard" {}
 
 ## Authentication and Configuration
 
-Every Chainguard API call the provider makes is authenticated. The provider
-obtains a Chainguard token in one of two ways:
+The provider authenticates every Chainguard API call it makes. It obtains a
+Chainguard token in one of two ways:
 
 - **Ambient credentials** — the token that `chainctl auth login` caches on
   disk. Best for local, interactive use.
@@ -43,8 +43,7 @@ Log in once with `chainctl`:
 chainctl auth login
 ```
 
-The provider reuses that cached token, so no provider configuration is
-required:
+The provider reuses that cached token, so you don't need to configure anything:
 
 ```terraform
 provider "chainguard" {}
@@ -64,8 +63,8 @@ provider "chainguard" {
 }
 ```
 
-The provider runs this flow itself, so `chainctl` does not need to be installed
-to authenticate.
+The provider runs this flow itself, so you don't need to install `chainctl` to
+authenticate.
 
 If your organization uses a custom identity provider, select it with
 `organization_name` (your verified organization) or `identity_provider_id`
@@ -73,14 +72,15 @@ instead of `auth0_connection`.
 
 ### Authenticating as an assumable identity
 
-An assumable identity is a Chainguard identity that a workload authenticates
-as by presenting an OIDC token, rather than by a human logging in. The identity
+An assumable identity is a Chainguard identity that a workload authenticates as
+by presenting an OIDC token, instead of one a human logs in to. The identity
 defines which token claims it accepts; any environment that can mint a matching
-OIDC token can then assume it. This section assumes the identity already
-exists. Create one with the [`chainguard_identity`](resources/identity.md)
-resource or with `chainctl iam identities create`, and look up existing
-identities and their UIDPs with the
-[`chainguard_identity`](data-sources/identity.md) data source or
+OIDC token can then assume it.
+
+This section assumes the identity already exists. Create one with the
+[`chainguard_identity` resource](resources/identity.md) or with
+`chainctl iam identities create`. To look up existing identities and their
+UIDPs, use the [`chainguard_identity` data source](data-sources/identity.md) or
 `chainctl iam identities list`.
 
 To authenticate as the identity, set `identity_token` to the OIDC token to
@@ -122,11 +122,11 @@ terraform apply
 ```
 
 An identity needs a role binding before it can act on your resources. Grant one
-with the [`chainguard_rolebinding`](resources/rolebinding.md) resource.
+with the [`chainguard_rolebinding` resource](resources/rolebinding.md).
 
 #### Constraints
 
-- `identity_token` is exclusive. It cannot be combined with `auth0_connection`,
+- `identity_token` is exclusive. You cannot combine it with `auth0_connection`,
   `identity_provider_id`, `organization_name`, or `enable_refresh_tokens` —
   those configure the interactive browser flow, which the token exchange
   replaces. Refresh tokens are a browser-flow feature and do not apply.
@@ -140,13 +140,13 @@ with the [`chainguard_rolebinding`](resources/rolebinding.md) resource.
 
 A provider block on its own authenticates nothing. Terraform configures a
 provider only when a resource or data source needs it, so a configuration that
-contains just a `provider` block plans as "No changes" without ever logging in.
+contains only a `provider` block plans as "No changes" without ever logging in.
 
 To confirm your credentials work, add a read-only data source and an output:
 
 ```terraform
 data "chainguard_group" "group" {
-  name = "YOUR.ORG"
+  name = "<organization>"
 }
 
 output "group_id" {
@@ -160,10 +160,10 @@ Then run:
 terraform plan
 ```
 
-`plan` reads data sources, which forces the provider to authenticate — you
-don't need to apply. If your credentials work, the plan resolves `group_id` to
-the group's UIDP. If they don't, the provider returns an authentication error
-instead of a silent no-op.
+The `plan` command reads data sources, which forces the provider to
+authenticate — you don't need to apply. If your credentials work, the plan
+resolves `group_id` to the group's UIDP. If they don't, the provider returns an
+authentication error instead of a silent no-op.
 
 Two commands help when a login fails:
 
